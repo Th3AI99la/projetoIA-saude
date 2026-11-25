@@ -1,0 +1,116 @@
+== Base de dados (seção 3) ==
+Linhas: 88673 | códigos: 247 | semanas por código: [359]
+  classe 0: 78530 (88,56%)
+  classe 1: 10143 (11,44%)
+Rótulos reconstruídos a partir da semana seguinte: 88426 (divergências: 0)
+
+== Separação cronológica (seção 7.1) ==
+Linhas com municípios identificados: 88.314
+  retiradas 246 linhas da semana iniciada em 25/12/2023
+  retiradas 246 linhas da semana iniciada em 23/12/2024
+  retiradas 246 linhas da semana iniciada em 30/12/2024
+  total retirado: 738
+Linhas restantes: 87.576
+  Treino (2019 a 2023)    62730 linhas | classe 1: 6339 (10,11%)
+  Validação (2024)        12546 linhas | classe 1: 2083 (16,60%)
+  Teste (2025)            12300 linhas | classe 1: 1580 (12,85%)
+
+== Grade da árvore de decisão na validação (seção 5) ==
+Configurações avaliadas: 48
+  maior F1 com 6 entradas: 40,88%
+  maior F1 com 9 entradas: 41,83%
+Cinco melhores configurações:
+  conjunto  max_depth  min_samples_leaf class_weight  folhas     f1
+9 entradas          8                50     balanced     188 41,83%
+9 entradas          8                20     balanced     209 41,77%
+9 entradas          8               200     balanced     132 41,17%
+6 entradas          5               200     balanced      32 40,88%
+6 entradas          8               200     balanced     125 40,76%
+Escolhida: 9 entradas, profundidade 8, mínimo 50 por folha, pesos balanced, 188 folhas, F1 de validação 41,83%
+
+== Dois primeiros níveis da árvore (Figura 3) ==
+Raiz: notificacoes_ultimas_4_semanas <= 4.5
+  nó 0: 62730 registros, aumento 10,11%
+  [sim] nó 1: 36868 registros, aumento 2,64%
+       pergunta seguinte: notificacoes_ultimas_4_semanas <= 1.5
+       [sim] nó 2: 26527 registros, aumento 1,52%
+       [não] nó 85: 10341 registros, aumento 5,49%
+  [não] nó 182: 25862 registros, aumento 20,75%
+       pergunta seguinte: diferenca_semanal <= -2.5
+       [sim] nó 183: 7298 registros, aumento 32,10%
+       [não] nó 262: 18564 registros, aumento 16,29%
+
+== Regressão logística na validação (seção 4.4) ==
+  6 entradas, pesos padrão   : F1 0,47%
+  6 entradas, pesos balanced : F1 39,95%
+  9 entradas, pesos padrão   : F1 1,11%
+  9 entradas, pesos balanced : F1 38,42%
+
+== Comparação nas 12300 observações do teste (Tabela 2) ==
+                                     Precisão  Recall      F1 Acurácia
+Árvore de decisão                      23,36%  79,43%  36,10%   63,89%
+Regressão logística                    19,79%  66,65%  30,51%   61,01%
+Semana atual >= 3 notificações         20,69%  64,24%  31,30%   63,78%
+Semana atual >= 3 e semana ISO <= 17   24,61%  35,25%  28,99%   77,81%
+Sempre classe 0                             —   0,00%   0,00%   87,15%
+  (precisão indefinida quando nenhuma previsão é positiva)
+
+== Matriz de confusão da árvore no teste (Tabela 3) ==
+  observada 1: 1255 verdadeiros positivos | 325 falsos negativos
+  observada 0: 4117 falsos positivos     | 6603 verdadeiros negativos
+  sinalizações: 5372
+  em relação à regra de 3 notificações: +240 aumentos detectados, +227 falsos positivos
+  precisão média (average precision): 31,57% | prevalência da classe 1: 12,85%
+
+== Detecção por trimestre e por volume histórico (Tabela 4) ==
+  1º trimestre de referência               aumentos   671 | FN   87 | recall 87,03%
+  2º trimestre de referência               aumentos   433 | FN  114 | recall 73,67%
+  3º trimestre de referência               aumentos   240 | FN   76 | recall 68,33%
+  4º trimestre de referência               aumentos   236 | FN   48 | recall 79,66%
+  Municípios até a mediana de volume       aumentos   414 | FN  143 | recall 65,46%
+  Municípios acima da mediana de volume    aumentos  1166 | FN  182 | recall 84,39%
+  mediana da média semanal por município no treino: 2,06
+
+== Dois exemplos do teste (Tabela 5) ==
+
+-- ABADIA DE GOIAS | semana iniciada em 06/01/2025 (semana ISO 2) --
+   notificacoes_semana_atual        = 1
+   notificacoes_semana_menos_1      = 3
+   notificacoes_semana_menos_2      = 3
+   notificacoes_semana_menos_3      = 4
+   notificacoes_semana_menos_4      = 4
+   semana_ano                       = 2
+   notificacoes_ultimas_4_semanas   = 11
+   diferenca_semanal                = -2
+   razao_media_anterior             = 0.222
+   Caminho:
+     notificacoes_ultimas_4_semanas = 11 > 4.500
+     diferenca_semanal = -2 > -2.500
+     notificacoes_ultimas_4_semanas = 11 > 10.500
+     semana_ano = 2 <= 18.500
+     diferenca_semanal = -2 <= 7.500
+     notificacoes_semana_menos_2 = 3 <= 3.500
+     diferenca_semanal = -2 <= 3.500
+     notificacoes_semana_menos_1 = 3 <= 4.500
+   Folha 323: classe prevista 1 (escore 0.672) | classe observada 1
+
+-- APARECIDA DO RIO DOCE | semana iniciada em 06/01/2025 (semana ISO 2) --
+   notificacoes_semana_atual        = 0
+   notificacoes_semana_menos_1      = 0
+   notificacoes_semana_menos_2      = 0
+   notificacoes_semana_menos_3      = 1
+   notificacoes_semana_menos_4      = 0
+   semana_ano                       = 2
+   notificacoes_ultimas_4_semanas   = 1
+   diferenca_semanal                = 0
+   razao_media_anterior             = 0.000
+   Caminho:
+     notificacoes_ultimas_4_semanas = 1 <= 4.500
+     notificacoes_ultimas_4_semanas = 1 <= 1.500
+     semana_ano = 2 <= 19.500
+     notificacoes_ultimas_4_semanas = 1 > 0.500
+     notificacoes_semana_menos_4 = 0 <= 1.500
+     notificacoes_semana_menos_2 = 0 <= 0.500
+     semana_ano = 2 <= 16.500
+     semana_ano = 2 <= 14.500
+   Folha 23: classe prevista 0 (escore 0.266) | classe observada 1
