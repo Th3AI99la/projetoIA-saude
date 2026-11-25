@@ -16,7 +16,7 @@ Reproduz o experimento descrito no relatório final do grupo:
 
 Uso:
     python dengue_prototipo.py
-    python dengue_prototipo.py --dados caminho/01_saude_dengue.xlsx
+    python dengue_prototipo.py --dados caminho/01_saude_dengue.csv
     python dengue_prototipo.py --dados caminho/01_saude_dengue.csv --municipio "GOIANIA"
 """
 
@@ -48,6 +48,7 @@ from sklearn.tree import DecisionTreeClassifier, export_text
 RANDOM_STATE = 42
 ALVO = "aumento_semana_seguinte"
 CODIGO_IGNORADO = "520000"
+CSV_PADRAO = Path(__file__).resolve().parent / "dados" / "01_saude_dengue.csv"
 
 # Seis entradas: contagem atual, as quatro contagens anteriores e a semana ISO.
 ENTRADAS_6 = [
@@ -71,29 +72,18 @@ GRADE_MIN_FOLHA = [20, 50, 200, 500]
 GRADE_PESOS = [None, "balanced"]
 
 
-def localizar_base_padrao() -> Path:
-    pasta = Path(__file__).resolve().parent / "dados"
-    candidatos = (pasta / "01_saude_dengue.xlsx", pasta / "01_saude_dengue.csv")
-    return next((caminho for caminho in candidatos if caminho.is_file()), candidatos[0])
-
-
 # ---------------------------------------------------------------------------
 # 1. Preparação dos dados
 # ---------------------------------------------------------------------------
 def carregar_dados(caminho: Path) -> pd.DataFrame:
+    if caminho.suffix.lower() != ".csv":
+        raise ValueError("Use a base semanal em formato CSV.")
     if not caminho.is_file():
         raise FileNotFoundError(
             f"Base não encontrada em '{caminho}'. Informe o arquivo semanal fornecido "
-            "na disciplina usando --dados com o caminho do XLSX ou CSV."
+            "na disciplina usando --dados com o caminho do CSV."
         )
-    tipos = {"codigo_municipio": "string"}
-    formato = caminho.suffix.lower()
-    if formato == ".xlsx":
-        df = pd.read_excel(caminho, dtype=tipos, engine="openpyxl")
-    elif formato == ".csv":
-        df = pd.read_csv(caminho, dtype=tipos, encoding="utf-8-sig")
-    else:
-        raise ValueError("Use a base semanal em formato XLSX ou CSV.")
+    df = pd.read_csv(caminho, dtype={"codigo_municipio": "string"}, encoding="utf-8-sig")
     campos = [
         "codigo_municipio", "municipio", "semana_inicio", ALVO,
         *ENTRADAS_6, "notificacoes_ultimas_4_semanas",
@@ -454,8 +444,8 @@ def main():
         "--csv",
         dest="dados",
         type=Path,
-        default=localizar_base_padrao(),
-        help="caminho da base semanal XLSX ou CSV (padrão: pasta dados/)",
+        default=CSV_PADRAO,
+        help="caminho do CSV semanal (padrão: dados/01_saude_dengue.csv)",
     )
     parser.add_argument("--municipio", help="nome do município para mostrar o caminho de decisão")
     parser.add_argument("--semana", help="segunda-feira da semana (AAAA-MM-DD); padrão: última do teste")

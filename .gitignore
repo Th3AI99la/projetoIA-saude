@@ -41,9 +41,7 @@ notebooks/
 # Bases, documentos e imagens locais
 dados/
 *.csv
-*.xlsx
-*.xls
-*.xlsm
+*.xls*
 *.parquet
 *.docx
 *.doc

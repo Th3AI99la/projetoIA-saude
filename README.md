@@ -14,22 +14,22 @@ O protótipo de terminal reproduz o experimento do relatório entregue na discip
 
 ## Como executar
 
-Use a base semanal disponibilizada na disciplina em formato `01_saude_dengue.xlsx` ou `01_saude_dengue.csv`. A base deve conter as 88.673 observações agregadas e a coluna `aumento_semana_seguinte`. Coloque o arquivo em uma pasta local `dados/` na raiz desta cópia ou informe seu caminho diretamente. O arquivo de dados é obtido com o material da disciplina.
+Use o arquivo `01_saude_dengue.csv` disponibilizado na disciplina. A base contém 88.673 observações agregadas e a coluna `aumento_semana_seguinte`. Coloque o arquivo em uma pasta local `dados/` na raiz desta cópia ou informe seu caminho no argumento `--dados`.
 
 No PowerShell, abra o terminal na pasta do repositório e use Python 3.13:
 
 ```powershell
 python -m venv .venv
 .\.venv\Scripts\python.exe -m pip install -r .\requirements-prototipo.txt
-.\.venv\Scripts\python.exe .\dengue_prototipo.py --dados ".\dados\01_saude_dengue.xlsx"
+.\.venv\Scripts\python.exe .\dengue_prototipo.py --dados ".\dados\01_saude_dengue.csv"
 ```
 
-Para a versão CSV, use o caminho do CSV no mesmo argumento. Em Linux ou macOS, use `./.venv/bin/python` após criar o ambiente e ajuste os caminhos para barras normais.
+Em Linux ou macOS, use `./.venv/bin/python` após criar o ambiente e ajuste os caminhos para barras normais.
 
 O programa imprime os resultados gerais e explica dois casos do teste. Para consultar outra previsão histórica, informe o município e a segunda-feira de referência:
 
 ```powershell
-.\.venv\Scripts\python.exe .\dengue_prototipo.py --dados ".\dados\01_saude_dengue.xlsx" --municipio "Goiânia" --semana 2025-03-10
+.\.venv\Scripts\python.exe .\dengue_prototipo.py --dados ".\dados\01_saude_dengue.csv" --municipio "Goiânia" --semana 2025-03-10
 ```
 
 A opção `--regras` imprime a árvore em texto. Com `--municipio` sem `--semana`, o programa explica o registro mais recente desse município no recorte de teste.
