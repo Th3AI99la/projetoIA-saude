@@ -200,7 +200,7 @@ export default function ({ parentElement, data, setTriggerValue }) {
   const limparPeriodo = periodo(parentElement, data, acionar);
   desenhar(svg, data.formas);
   svg.dataset.foco = String(foco);
-  svg.setAttribute("aria-label", foco ? "Limites de " + atual.nome : "Municípios de Goiás");
+  svg.setAttribute("aria-label", foco ? "Limites de " + atual.nome : "Municípios do " + data.estado);
   previa.hidden = true;
   const cena = (foco ? data.codigo : "goias") + data.semana;
   if (contexto.dataset.cena && contexto.dataset.cena !== cena && !movimentoReduzido.matches) {
@@ -210,8 +210,9 @@ export default function ({ parentElement, data, setTriggerValue }) {
     );
   }
   contexto.dataset.cena = cena;
-  parentElement.querySelector("[data-mapa-titulo]").textContent = foco ? atual.nome : "Goiás inteiro";
+  parentElement.querySelector("[data-mapa-titulo]").textContent = foco ? atual.nome : data.estado;
   contexto.textContent = rotuloContagem(foco ? atual.total : data.total_estado);
+  parentElement.querySelector("[data-mapa-bandeira]").hidden = foco;
   brasaoPendente.hidden = !foco || Boolean(data.brasao);
   if (foco && data.brasao) {
     imagem.alt = "Brasão de " + atual.nome;

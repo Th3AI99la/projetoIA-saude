@@ -23,6 +23,8 @@
   </div>
   <div class="mapa-cabecalho tw:flex tw:flex-wrap tw:items-center tw:justify-between tw:gap-2">
     <div class="mapa-identidade">
+      <img class="mapa-bandeira" data-mapa-bandeira hidden src="app/static/bandeira-goias.png"
+        width="56" height="39" alt="Bandeira de Goiás">
       <a class="mapa-brasao" data-mapa-brasao hidden target="_blank" rel="noopener noreferrer">
         <img width="54" height="54" alt="">
       </a>
@@ -34,11 +36,11 @@
     </div>
     <button type="button" class="mapa-voltar tw:items-center tw:gap-2" data-mapa-voltar hidden>
       <svg class="tw:size-4" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M19 12H5m6-6-6 6 6 6"/></svg>
-      Voltar para Goiás
+      Voltar ao Estado de Goiás
     </button>
   </div>
   <div class="mapa-palco tw:relative">
-    <svg class="mapa-svg tw:block tw:w-full" role="group" aria-label="Municípios de Goiás" aria-describedby="mapa-instrucao">
+    <svg class="mapa-svg tw:block tw:w-full" role="group" aria-label="Municípios do Estado de Goiás" aria-describedby="mapa-instrucao">
       <g data-mapa-formas></g>
     </svg>
     <div class="mapa-previa" aria-hidden="true" hidden></div>

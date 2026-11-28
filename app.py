@@ -1,6 +1,8 @@
 """Painel local para explorar as previsões retrospectivas de dengue em Goiás."""
 
+import json
 import os
+from html import escape
 from pathlib import Path
 
 import altair as alt
@@ -16,6 +18,7 @@ from painel_interface import INTERFACE, busca_municipal, catalogo_brasoes, geogr
 
 RAIZ = Path(__file__).resolve().parent
 NOME_CSV = "01_saude_dengue.csv"
+ESTADO_GOIAS = "Estado de Goiás"
 ABADIA = "ABADIA DE GOIAS"
 RIO_DOCE = "APARECIDA DO RIO DOCE"
 SEMANA_EXEMPLO = pd.Timestamp("2025-01-06")
@@ -26,7 +29,12 @@ AMARELO = "#f1cd58"
 CORAL = "#f0838a"
 VERDE = "#73d7c4"
 EIXO = "#c7d4e1"
-NOMES_EXIBICAO = {ABADIA: "Abadia de Goiás", "COCALZINHO DE GOIAS": "Cocalzinho de Goiás", "GOIANIA": "Goiânia"}
+NOMES_EXIBICAO = {
+    ABADIA: "Abadia de Goiás",
+    "COCALZINHO DE GOIAS": "Cocalzinho de Goiás",
+    "GOIANIA": "Goiânia",
+    "GOIAS": "Cidade de Goiás",
+}
 ATRIBUTOS = {
     COLUNA_CONTAGEM: "Notificações na semana de referência",
     **{f"notificacoes_semana_menos_{i}": f"Notificações há {i} semana(s)" for i in range(1, 5)},
@@ -167,9 +175,9 @@ def barra_lateral(painel, municipio):
             selecionar_municipio(escolhido)
 
     with st.sidebar:
-        st.header("Explorar Goiás")
+        st.header("Explorar o estado")
         st.button(
-            "Goiás inteiro", icon=":material/map:", on_click=selecionar_municipio,
+            ESTADO_GOIAS, icon=":material/map:", on_click=selecionar_municipio,
             args=(None,), width="stretch", type="primary" if municipio is None else "secondary",
         )
         busca_municipal(
@@ -205,23 +213,66 @@ def tema_grafico(grafico, altura):
     ).configure_legend(labelColor=EIXO, titleColor=EIXO)
 
 
-def grafico_classes(semana):
-    aumentos = int(semana[ALVO].sum())
-    total = len(semana)
-    distribuicao = pd.DataFrame({
-        "Classe": [ROTULOS[0], ROTULOS[1]],
-        "Municípios": [total - aumentos, aumentos],
-    })
-    distribuicao["Proporção"] = distribuicao["Municípios"] / total
-    rosca = alt.Chart(distribuicao).mark_arc(innerRadius=43, outerRadius=65, cornerRadius=3, padAngle=.035).encode(
+def grafico_classes(distribuicao, total):
+    rosca = alt.Chart(distribuicao).mark_arc(
+        innerRadius=41, outerRadius=62, cornerRadius=3, padAngle=.035, strokeWidth=2,
+    ).encode(
         theta="Municípios:Q",
+        order="Ordem:Q",
         color=alt.Color("Classe:N", scale=alt.Scale(domain=list(ROTULOS.values()), range=[AZUL, CORAL]), legend=None),
-        tooltip=["Classe:N", "Municípios:Q", alt.Tooltip("Proporção:Q", format=".1%")],
+        stroke=alt.condition(alt.datum.Selecionada, alt.value(AMARELO), alt.value("transparent")),
+        tooltip=["Classe:N", "Municípios:Q", "Percentual:N"],
     )
     centro = alt.Chart(pd.DataFrame({"Total": [inteiro(total)], "Unidade": ["municípios"]}))
     valor = centro.mark_text(dy=-5, fontSize=23, fontWeight=700, color="#eef4fb").encode(text="Total:N")
     unidade = centro.mark_text(dy=15, fontSize=10, color=EIXO).encode(text="Unidade:N")
-    return tema_grafico(rosca + valor + unidade, 158)
+    return tema_grafico(rosca + valor + unidade, 140).properties(
+        autosize=alt.AutoSizeParams(type="fit-x", contains="padding"),
+        padding={"top": 6, "right": 6, "bottom": 6, "left": 6},
+    )
+
+
+def resultado_observado(semana, referencia, seguinte, caso):
+    total = len(semana)
+    aumentos = int(semana[ALVO].sum())
+    classe_selecionada = caso.classe_observada if caso is not None else None
+    dados = [
+        {
+            "Ordem": classe,
+            "Classe": ROTULOS[classe],
+            "Municípios": quantidade,
+            "Percentual": percentual(quantidade / total),
+            "Selecionada": classe == classe_selecionada,
+        }
+        for classe, quantidade in enumerate((total - aumentos, aumentos))
+    ]
+    local = nome_municipio(caso.municipio) if caso is not None else ESTADO_GOIAS
+    st.subheader(f"Resultado observado · {local}")
+    st.caption(f"Semana de {periodo_semana(seguinte)} comparada à semana analisada de {periodo_semana(referencia)}.")
+    if classe_selecionada is not None:
+        st.html(f'<p class="dengue-classes-resultado classe-{classe_selecionada}"><strong>{ROTULOS[classe_selecionada]}</strong></p>')
+        atual, observada = caso.notificacoes_semana_atual, caso.notificacoes_semana_seguinte
+        if observada is not None:
+            st.caption(f"As notificações passaram de {inteiro(atual)} para {inteiro(observada)}.")
+        else:
+            st.caption("O CSV informa o resultado observado. A contagem da semana seguinte está fora do recorte.")
+        st.markdown(f"**Como ficou o {ESTADO_GOIAS} na mesma semana**")
+
+    st.altair_chart(
+        grafico_classes(pd.DataFrame(dados), total), width="stretch", theme=None,
+        alt=f"Distribuição dos {inteiro(total)} municípios avaliados no {ESTADO_GOIAS} por resultado observado",
+    )
+    itens = []
+    for grupo in dados:
+        destaque = " classe-selecionada" if grupo["Selecionada"] else ""
+        itens.append(f"""
+            <div class="classe-{grupo['Ordem']}{destaque}">
+              <dt>{grupo['Classe']}</dt>
+              <dd><strong>{inteiro(grupo['Municípios'])}</strong> · {grupo['Percentual']}</dd>
+            </div>
+        """)
+    st.html(f'<dl class="dengue-classes-legenda" aria-label="Municípios por resultado observado">{"".join(itens)}</dl>')
+    st.caption("Para contar como aumento relevante, a semana seguinte precisa ter pelo menos 3 notificações a mais e crescimento de 25% ou mais.")
 
 
 def grafico_comparativo(medidas, unidade, cores):
@@ -241,7 +292,7 @@ def grafico_comparativo(medidas, unidade, cores):
 
 def comparacao_estado(semana, seguinte):
     st.subheader("Municípios com aumento relevante")
-    st.markdown(f"**Goiás inteiro** · Semana seguinte de {periodo_semana(seguinte)}")
+    st.markdown(f"**{ESTADO_GOIAS}** · Semana seguinte de {periodo_semana(seguinte)}")
     medidas = pd.DataFrame({
         "Série": ["Sinalizados", "Com aumento"],
         "Municípios": [int(semana[COLUNA_PREVISTA].sum()), int(semana[ALVO].sum())],
@@ -303,6 +354,63 @@ def grafico_historico(painel, municipio, referencia, seguinte):
     return tema_grafico(barras, 255)
 
 
+@st.cache_data(show_spinner=False)
+def catalogo_perfis():
+    caminho = RAIZ / "mapas" / "perfis_municipais.json"
+    with caminho.open(encoding="utf-8") as arquivo:
+        return json.load(arquivo)
+
+
+def renderizar_perfil(codigo, municipio, brasao):
+    catalogo = catalogo_perfis()
+    perfil = catalogo["municipios"].get(codigo)
+    if perfil is None:
+        return
+
+    nome = escape(NOMES_EXIBICAO.get(municipio, perfil["nome"]))
+    regiao = escape(perfil["regiao_imediata"])
+    habitantes = inteiro(perfil["habitantes"])
+    area = f'{perfil["area_km2"]:,.2f}'.translate(str.maketrans(",.", ".,"))
+    ano = catalogo["ano_censo"]
+    imagem = ""
+    if brasao:
+        imagem = f"""
+          <a class="mapa-brasao" href="{escape(brasao['fonte'])}" target="_blank" rel="noopener noreferrer"
+             aria-label="Fonte do brasão de {nome}">
+            <img src="{escape(brasao['arquivo'])}" alt="Brasão de {nome}" width="64" height="64">
+          </a>
+        """
+
+    descricao = perfil.get("descricao")
+    texto = f'<p class="dengue-perfil-descricao">{escape(descricao)}</p>' if descricao else ""
+    fontes = {
+        f"Censo {ano}": catalogo["fonte_censo"],
+        "Regiões do IBGE": catalogo["fonte_regioes"],
+        **perfil.get("fontes", {}),
+    }
+    links = "".join(
+        f'<li><a href="{escape(url)}" target="_blank" rel="noopener noreferrer">{escape(rotulo)}</a></li>'
+        for rotulo, url in fontes.items()
+    )
+    st.html(f"""
+        <article class="dengue-perfil" aria-labelledby="dengue-perfil-nome">
+          <div class="dengue-perfil-identidade">
+            {imagem}
+            <div>
+              <h4 id="dengue-perfil-nome">{nome}</h4>
+              <p>Região Geográfica Imediata de {regiao}</p>
+            </div>
+          </div>
+          {texto}
+          <dl class="dengue-perfil-dados">
+            <div><dt>População · Censo {ano}</dt><dd>{habitantes} habitantes</dd></div>
+            <div><dt>Área territorial · {ano}</dt><dd>{area} km²</dd></div>
+          </dl>
+          <ul class="dengue-perfil-fontes" aria-label="Fontes do perfil municipal">{links}</ul>
+        </article>
+    """)
+
+
 def renderizar_mapa(painel, semana, municipio, referencia, semanas):
     cadastrados = painel.teste[["codigo_municipio", COLUNA_MUNICIPIO]].drop_duplicates()
     por_codigo = dict(zip(cadastrados["codigo_municipio"].astype(str), cadastrados[COLUNA_MUNICIPIO]))
@@ -339,12 +447,15 @@ def renderizar_mapa(painel, semana, municipio, referencia, semanas):
             "codigo": codigo,
             "foco": municipio is not None,
             "brasao": brasao,
+            "estado": ESTADO_GOIAS,
             "total_estado": sum(contagens.values()),
             "semana": referencia.date().isoformat(),
             "semanas": [{"valor": iso, "rotulo": periodo_semana(dia)} for iso, dia in datas.items()],
         },
         on_acao_change=processar_acao,
     )
+    if codigo is not None:
+        renderizar_perfil(codigo, municipio, brasao)
 
 
 def resultado(caso):
@@ -397,7 +508,7 @@ def resumo_estado(semana, seguinte):
     atual = int(semana[COLUNA_CONTAGEM].sum())
     contagens = semana[COLUNA_SEGUINTE]
     futura = inteiro(int(contagens.sum())) if contagens.notna().all() else "—"
-    st.metric("Notificações em Goiás · semana analisada → semana seguinte", f"{inteiro(atual)} → {futura}")
+    st.metric(f"Notificações no {ESTADO_GOIAS} · semana analisada → semana seguinte", f"{inteiro(atual)} → {futura}")
     if futura == "—":
         st.caption("O total da semana seguinte exige a contagem de todos os municípios avaliados.")
 
@@ -418,13 +529,13 @@ def explorar(painel):
     semana = painel.teste.loc[painel.teste[COLUNA_SEMANA].eq(referencia)]
     mapa, detalhes = st.columns((1.35, 1), gap="small", border=True)
     with mapa:
-        st.subheader("Mapa de Goiás")
+        st.subheader(f"Mapa do {ESTADO_GOIAS}")
         renderizar_mapa(painel, semana, municipio, referencia, semanas)
 
     with detalhes:
         if caso is None:
             st.subheader("Resumo estadual")
-            st.markdown(f"**Goiás inteiro** · {periodo_semana(referencia)}")
+            st.markdown(f"**{ESTADO_GOIAS}** · {periodo_semana(referencia)}")
             resumo_estado(semana, seguinte)
         else:
             st.subheader("Previsão e observação")
@@ -454,11 +565,7 @@ def explorar(painel):
 
     classes, sinais = st.columns(2, gap="small", border=True)
     with classes:
-        st.subheader("Classes observadas em Goiás")
-        st.altair_chart(grafico_classes(semana), width="stretch", theme=None, alt="Distribuição das classes observadas nos municípios da semana")
-        st.html("""
-            <div class="dengue-legend"><span class="legenda-historico"><i></i>Sem aumento</span><span class="legenda-aumento"><i></i>Com aumento</span></div>
-        """)
+        resultado_observado(semana, referencia, seguinte, caso)
     with sinais:
         if caso is None:
             comparacao_estado(semana, seguinte)
@@ -593,15 +700,15 @@ def avaliar(painel):
         st.markdown(
             "- **Mapa.** A cor representa a contagem de notificações na semana analisada. O código IBGE "
             "liga cada contagem ao contorno do município.\n"
-            "- **Histórico.** Cada barra corresponde a uma semana. Na visão Goiás inteiro, a barra soma "
+            f"- **Histórico.** Cada barra corresponde a uma semana. No resumo do {ESTADO_GOIAS}, a barra soma "
             "as notificações dos municípios naquela semana.\n"
             "- **Comparação.** Para um município, são duas contagens de notificações, da semana analisada e "
-            "da seguinte. Para Goiás inteiro, as barras contam municípios sinalizados e municípios com aumento observado."
+            f"da seguinte. Para o {ESTADO_GOIAS}, as barras contam municípios sinalizados e municípios com aumento observado."
         )
 
 
 def main():
-    st.set_page_config(page_title="Monitoramento de dengue em Goiás", layout="wide")
+    st.set_page_config(page_title=f"Monitoramento de dengue no {ESTADO_GOIAS}", layout="wide")
     st.html(INTERFACE / "tailwind.css")
     st.html(RAIZ / "painel.css")
     topo = st.empty()

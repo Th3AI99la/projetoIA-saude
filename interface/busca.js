@@ -6,7 +6,11 @@ export default function ({ parentElement, data, setTriggerValue }) {
   const campo = parentElement.querySelector("#busca-cidade");
   const lista = parentElement.querySelector("#busca-resultados");
   const vazio = parentElement.querySelector(".busca-vazia");
-  const municipios = data.municipios.map(item => ({ ...item, busca: normalizar(item.rotulo) }));
+  const municipios = data.municipios.map(item => ({
+    ...item,
+    nome: normalizar(item.valor),
+    busca: normalizar(item.rotulo),
+  }));
 
   function fechar() {
     lista.hidden = vazio.hidden = true;
@@ -26,8 +30,13 @@ export default function ({ parentElement, data, setTriggerValue }) {
     lista.replaceChildren();
     if (!consulta) return;
 
-    const resultados = municipios.filter(item => item.busca.includes(consulta))
-      .sort((a, b) => Number(b.busca.startsWith(consulta)) - Number(a.busca.startsWith(consulta)))
+    function prioridade(item) {
+      if (item.nome === consulta || item.busca === consulta) return 0;
+      return item.nome.startsWith(consulta) || item.busca.startsWith(consulta) ? 1 : 2;
+    }
+
+    const resultados = municipios.filter(item => item.nome.includes(consulta) || item.busca.includes(consulta))
+      .sort((a, b) => prioridade(a) - prioridade(b))
       .slice(0, 7);
     for (const [indice, municipio] of resultados.entries()) {
       const opcao = document.createElement("li");

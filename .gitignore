@@ -48,6 +48,7 @@ dados/
 *.pdf
 *.pptx
 *.png
+!/static/bandeira-goias.png
 *.jpg
 *.jpeg
 *.webp

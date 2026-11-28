@@ -344,6 +344,95 @@
   background: #132235;
 }
 
+.mapa-bandeira {
+  flex: none;
+  width: 3.45rem;
+  height: auto;
+  border-radius: .25rem;
+}
+
+.dengue-perfil {
+  display: grid;
+  gap: .65rem;
+  padding: .75rem;
+  border: 1px solid var(--dengue-borda);
+  border-radius: .45rem;
+  background: #132236;
+}
+
+.dengue-perfil-identidade {
+  display: flex;
+  align-items: center;
+  gap: .7rem;
+  min-width: 0;
+}
+
+.dengue-perfil .mapa-brasao {
+  width: 3.85rem;
+  height: 3.85rem;
+}
+
+.dengue-perfil a:focus-visible {
+  outline: 2px solid var(--dengue-amarelo);
+  outline-offset: 3px;
+}
+
+.dengue-perfil h4 {
+  margin: 0 0 .1rem;
+  padding: 0;
+  color: var(--dengue-texto);
+  font-size: 1.05rem;
+  line-height: 1.3;
+}
+
+.dengue-perfil p {
+  margin: 0;
+  color: var(--dengue-secundario);
+  font-size: .78rem;
+  line-height: 1.55;
+}
+
+[data-testid="stHtml"] .dengue-perfil :is(dl, ul) {
+  margin: 0;
+  padding: 0;
+}
+
+.dengue-perfil-dados {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 9.6rem), 1fr));
+  gap: .42rem;
+}
+
+.dengue-perfil-dados > div {
+  padding: .42rem .55rem;
+  border: 1px solid var(--dengue-borda);
+  border-radius: .3rem;
+  background: var(--dengue-painel);
+}
+
+.dengue-perfil-dados dt {
+  color: var(--dengue-secundario);
+  font-size: .69rem;
+}
+
+.dengue-perfil-dados dd {
+  margin: .12rem 0 0;
+  color: var(--dengue-texto);
+  font-size: .84rem;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+.dengue-perfil-fontes {
+  display: flex;
+  flex-wrap: wrap;
+  gap: .25rem .65rem;
+  list-style: none;
+  font-size: .68rem;
+}
+
+.dengue-perfil-fontes a { color: var(--dengue-azul); }
+
 .dengue-outcome {
   padding: .65rem;
   border: 1px solid #3f706e;
@@ -454,9 +543,62 @@
   background: var(--dengue-azul);
 }
 
-.dengue-legend .legenda-aumento i { background: var(--dengue-coral); }
 .dengue-legend .legenda-referencia i { background: var(--dengue-amarelo); }
 .dengue-legend .legenda-observada i { background: var(--dengue-verde); }
+
+.dengue-classes-resultado.classe-0, .dengue-classes-legenda .classe-0 { --cor-classe: var(--dengue-azul); }
+.dengue-classes-resultado.classe-1, .dengue-classes-legenda .classe-1 { --cor-classe: var(--dengue-coral); }
+
+.dengue-classes-resultado {
+  width: fit-content;
+  margin: 0;
+  padding: .36rem .6rem;
+  border: 1px solid var(--dengue-borda);
+  border-left: 3px solid var(--cor-classe);
+  border-radius: .3rem;
+  background: var(--dengue-fundo);
+  color: var(--dengue-texto);
+  font-size: .84rem;
+}
+
+[data-testid="stHtml"] .dengue-classes-legenda {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 8rem), 1fr));
+  gap: .42rem;
+  margin: 0;
+  padding: 0;
+}
+
+.dengue-classes-legenda > div {
+  padding: .4rem .55rem;
+  border: 1px solid var(--dengue-borda);
+  border-radius: .3rem;
+  background: var(--dengue-fundo);
+}
+
+.dengue-classes-legenda > .classe-selecionada { border-color: var(--dengue-amarelo); }
+
+.dengue-classes-legenda dt {
+  color: var(--dengue-secundario);
+  font-size: .72rem;
+}
+
+.dengue-classes-legenda dt::before {
+  display: inline-block;
+  width: .54rem;
+  height: .54rem;
+  margin-right: .35rem;
+  border-radius: .15rem;
+  background: var(--cor-classe);
+  content: "";
+}
+
+.dengue-classes-legenda dd {
+  margin: .08rem 0 0;
+  color: var(--dengue-texto);
+  font-size: .83rem;
+  font-variant-numeric: tabular-nums;
+}
 
 [data-testid="stHtml"] ol.dengue-periodos {
   display: grid;
