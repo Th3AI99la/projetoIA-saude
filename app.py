@@ -9,6 +9,7 @@ import altair as alt
 import pandas as pd
 import streamlit as st
 
+from dengue_prototipo import normalizar
 from painel_dados import (
     ALVO, COLUNA_CONTAGEM, COLUNA_MUNICIPIO, COLUNA_PREVISTA,
     COLUNA_SEGUINTE, COLUNA_SEMANA, carregar_painel,
@@ -29,19 +30,16 @@ AMARELO = "#f1cd58"
 CORAL = "#f0838a"
 VERDE = "#73d7c4"
 EIXO = "#c7d4e1"
-NOMES_EXIBICAO = {
-    ABADIA: "Abadia de Goiás",
-    "COCALZINHO DE GOIAS": "Cocalzinho de Goiás",
-    "GOIANIA": "Goiânia",
-    "GOIAS": "Cidade de Goiás",
-}
 ATRIBUTOS = {
-    COLUNA_CONTAGEM: "Notificações na semana de referência",
-    **{f"notificacoes_semana_menos_{i}": f"Notificações há {i} semana(s)" for i in range(1, 5)},
+    COLUNA_CONTAGEM: "Notificações na semana analisada",
+    **{
+        f"notificacoes_semana_menos_{i}": f"Notificações de {i} {'semana' if i == 1 else 'semanas'} atrás"
+        for i in range(1, 5)
+    },
     "semana_ano": "Número da semana ISO",
     "notificacoes_ultimas_4_semanas": "Soma das últimas 4 semanas",
     "diferenca_semanal": "Diferença para a semana anterior",
-    "razao_media_anterior": "Razão em relação à média das 4 semanas anteriores + 1",
+    "razao_media_anterior": "Notificações da semana analisada ÷ (média das 4 semanas anteriores + 1)",
 }
 
 
@@ -71,9 +69,17 @@ def periodo_semana(inicio):
     return f"{inicio.day:02d} {mes_inicial}{ano_inicial} – {fim.day:02d} {mes_final} {fim.year}"
 
 
+@st.cache_resource(show_spinner=False)
+def nomes_municipais():
+    nomes = {normalizar(perfil["nome"]): perfil["nome"] for perfil in catalogo_perfis()["municipios"].values()}
+    nomes["GOIAS"] = "Cidade de Goiás"
+    return nomes
+
+
 def nome_municipio(valor):
-    if valor in NOMES_EXIBICAO:
-        return NOMES_EXIBICAO[valor]
+    oficial = nomes_municipais().get(normalizar(valor))
+    if oficial is not None:
+        return oficial
     return " ".join(p.lower() if p in {"DE", "DO", "DA", "DOS", "DAS"} else p.capitalize() for p in valor.split())
 
 
@@ -121,7 +127,7 @@ def cabecalho(painel):
             "titulo": "Precisão",
             "valor": precisao,
             "resumo": "proporção de sinais corretos",
-            "explicacao": "Entre as semanas sinalizadas pela árvore, quantas tiveram aumento relevante observado?",
+            "explicacao": "Dos sinais emitidos pela árvore, qual proporção foi confirmada por um aumento relevante?",
             "calculo": f"{detectados} ÷ {sinalizados} × 100 = {precisao}" if total_sinais else "0% por convenção",
             "nota": (f"Houve {inteiro(matriz['fp'])} sinais sem aumento relevante observado. São os falsos positivos."
                      if total_sinais else "Com zero sinalizações, a divisão para calcular a precisão fica indefinida."),
@@ -253,7 +259,7 @@ def resultado_observado(semana, referencia, seguinte, caso):
         st.html(f'<p class="dengue-classes-resultado classe-{classe_selecionada}"><strong>{ROTULOS[classe_selecionada]}</strong></p>')
         atual, observada = caso.notificacoes_semana_atual, caso.notificacoes_semana_seguinte
         if observada is not None:
-            st.caption(f"As notificações passaram de {inteiro(atual)} para {inteiro(observada)}.")
+            st.caption(f"Total de notificações · {inteiro(atual)} na semana analisada e {inteiro(observada)} na semana seguinte.")
         else:
             st.caption("O CSV informa o resultado observado. A contagem da semana seguinte está fora do recorte.")
         st.markdown(f"**Como ficou o {ESTADO_GOIAS} na mesma semana**")
@@ -341,10 +347,10 @@ def grafico_historico(painel, municipio, referencia, seguinte):
     if municipio is None:
         serie = serie.groupby("Semana", as_index=False)["Notificações"].sum()
     serie["Papel"] = "Histórico"
-    serie.loc[serie["Semana"].eq(referencia), "Papel"] = "Semana de referência"
-    serie.loc[serie["Semana"].eq(seguinte), "Papel"] = "Semana observada"
+    serie.loc[serie["Semana"].eq(referencia), "Papel"] = "Semana analisada"
+    serie.loc[serie["Semana"].eq(seguinte), "Papel"] = "Semana seguinte"
     serie["Data"] = serie["Semana"].dt.strftime("%d/%m")
-    cores = alt.Scale(domain=["Histórico", "Semana de referência", "Semana observada"], range=[AZUL, AMARELO, VERDE])
+    cores = alt.Scale(domain=["Histórico", "Semana analisada", "Semana seguinte"], range=[AZUL, AMARELO, VERDE])
     barras = alt.Chart(serie).mark_bar(cornerRadiusEnd=2).encode(
         x=alt.X("Data:O", sort=serie["Data"].tolist(), title=None, axis=alt.Axis(labelAngle=0, labelOverlap=True)),
         y=alt.Y("Notificações:Q", title=None, axis=alt.Axis(tickMinStep=1)),
@@ -361,13 +367,13 @@ def catalogo_perfis():
         return json.load(arquivo)
 
 
-def renderizar_perfil(codigo, municipio, brasao):
+def renderizar_perfil(codigo, brasao):
     catalogo = catalogo_perfis()
     perfil = catalogo["municipios"].get(codigo)
     if perfil is None:
         return
 
-    nome = escape(NOMES_EXIBICAO.get(municipio, perfil["nome"]))
+    nome = escape(nome_municipio(perfil["nome"]))
     regiao = escape(perfil["regiao_imediata"])
     habitantes = inteiro(perfil["habitantes"])
     area = f'{perfil["area_km2"]:,.2f}'.translate(str.maketrans(",.", ".,"))
@@ -455,7 +461,7 @@ def renderizar_mapa(painel, semana, municipio, referencia, semanas):
         on_acao_change=processar_acao,
     )
     if codigo is not None:
-        renderizar_perfil(codigo, municipio, brasao)
+        renderizar_perfil(codigo, brasao)
 
 
 def resultado(caso):
@@ -483,7 +489,7 @@ def resultado(caso):
     st.metric("Notificações · semana analisada → semana seguinte", f"{inteiro(caso.notificacoes_semana_atual)} → {observada}", delta=delta, delta_color="off")
     if proxima is None:
         st.caption("O CSV informa a classe observada. A contagem da semana seguinte está fora do recorte.")
-    st.caption("Aumento relevante: pelo menos 3 notificações a mais e crescimento de pelo menos 25%.")
+    st.caption("Um aumento relevante exige pelo menos 3 notificações a mais e crescimento de 25% ou mais.")
 
 
 def resumo_estado(semana, seguinte):
@@ -547,7 +553,7 @@ def explorar(painel):
             alt="Evolução semanal de notificações no território selecionado",
         )
         st.html("""
-            <div class="dengue-legend"><span class="legenda-historico"><i></i>Histórico</span><span class="legenda-referencia"><i></i>Referência</span><span class="legenda-observada"><i></i>Observada após a previsão</span></div>
+            <div class="dengue-legend"><span class="legenda-historico"><i></i>Histórico</span><span class="legenda-referencia"><i></i>Semana analisada</span><span class="legenda-observada"><i></i>Semana seguinte</span></div>
         """)
         if caso is not None:
             with st.expander("Ver o caminho da árvore", icon=":material/route:"):
@@ -606,7 +612,7 @@ def avaliar(painel):
 
     origem, alvo = st.columns(2, gap="small", border=True)
     with origem:
-        st.subheader("De onde vêm os dados")
+        st.subheader("De onde vêm os dados?")
         st.markdown(
             "Os registros originais vêm da **Secretaria de Estado da Saúde de Goiás**. "
             "O painel lê o CSV didático, que já vem com as notificações agrupadas pela data da notificação."
@@ -617,7 +623,7 @@ def avaliar(painel):
         )
         st.caption("[Fonte original · Dados Abertos Goiás](https://dadosabertos.go.gov.br/pt_BR/dataset/dengue)")
     with alvo:
-        st.subheader("O que a árvore prevê")
+        st.subheader("O que a árvore prevê?")
         st.markdown(
             "Com o histórico disponível até a **semana analisada**, a árvore decide se deve **sinalizar um "
             "aumento relevante na semana seguinte**."
@@ -629,7 +635,7 @@ def avaliar(painel):
               <div><strong>25% ou mais</strong><span>de crescimento</span></div>
             </div>
         """)
-        st.caption("De 4 para 7 notificações, são 3 a mais e 75% de crescimento. Esse exemplo atende aos dois critérios.")
+        st.caption("Passar de 4 para 7 notificações representa um aumento de 3 notificações, ou 75%. O exemplo atende aos dois critérios.")
 
     st.subheader("Como ler o desempenho no teste")
     st.caption(f"Em {inteiro(registros_teste)} registros de município e semana, {inteiro(aumentos)} tiveram aumento relevante observado.")
@@ -660,7 +666,7 @@ def avaliar(painel):
             </table>
         """)
     with direita:
-        st.subheader("O que significam os erros")
+        st.subheader("O que significam os erros?")
         st.markdown(
             f"**{inteiro(matriz['fn'])} falsos negativos.** Houve aumento relevante, e a árvore deixou a semana sem sinal. "
             "Em uma triagem baseada nesses sinais, esses aumentos poderiam passar despercebidos."
