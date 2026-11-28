@@ -51,16 +51,19 @@ class Painel:
     historico: pd.DataFrame
     teste: pd.DataFrame
     municipios: tuple[str, ...]
+    registros_csv: int
+    registros_treino: int
+    registros_validacao: int
+    entradas: list[str]
     metricas: dict[str, float]
     matriz: dict[str, int]
     configuracao: dict[str, int | float | str]
     _arvore: DecisionTreeClassifier
-    _entradas: list[str]
 
-    def semanas(self, municipio: str) -> tuple[pd.Timestamp, ...]:
-        """Retorna as semanas com avaliação disponível para o município."""
-        escolha = self.teste[COLUNA_MUNICIPIO].eq(municipio)
-        return tuple(self.teste.loc[escolha, COLUNA_SEMANA].sort_values())
+    def semanas(self, municipio: str | None) -> tuple[pd.Timestamp, ...]:
+        """Retorna as semanas avaliadas no estado ou no município selecionado."""
+        linhas = self.teste if municipio is None else self.teste.loc[self.teste[COLUNA_MUNICIPIO].eq(municipio)]
+        return tuple(linhas[COLUNA_SEMANA].drop_duplicates().sort_values())
 
     def consultar(self, municipio: str, semana: pd.Timestamp) -> Caso:
         """Explica uma previsão do teste e retorna as observações disponíveis."""
@@ -73,11 +76,11 @@ class Painel:
         seguinte = linha[COLUNA_SEGUINTE]
         modelo = self._arvore.tree_
         regras = []
-        for no in self._arvore.decision_path(selecionado[self._entradas]).indices:
+        for no in self._arvore.decision_path(selecionado[self.entradas]).indices:
             atributo = modelo.feature[no]
             if atributo < 0:
                 continue
-            entrada = self._entradas[atributo]
+            entrada = self.entradas[atributo]
             valor = float(linha[entrada])
             limite = float(modelo.threshold[no])
             regras.append(Regra(entrada, valor, "≤" if valor <= limite else ">", limite))
@@ -115,10 +118,13 @@ def carregar_painel(caminho: Path) -> Painel:
         historico=historico,
         teste=teste,
         municipios=tuple(sorted(teste[COLUNA_MUNICIPIO].unique(), key=normalizar)),
+        registros_csv=len(base),
+        registros_treino=len(treino),
+        registros_validacao=len(validacao),
+        entradas=entradas,
         metricas=metricas(observadas, previstas),
         matriz={"vn": int(vn), "fp": int(fp), "fn": int(fn), "vp": int(vp)},
         configuracao={
-            "entradas": len(entradas),
             "profundidade": arvore.max_depth,
             "minimo_por_folha": arvore.min_samples_leaf,
             "folhas": int(arvore.get_n_leaves()),
@@ -127,5 +133,4 @@ def carregar_painel(caminho: Path) -> Painel:
             "pesos": "pesos balanceados" if arvore.class_weight == "balanced" else "pesos padrão",
         },
         _arvore=arvore,
-        _entradas=entradas,
     )

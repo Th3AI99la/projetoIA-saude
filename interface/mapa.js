@@ -189,6 +189,9 @@ export default function ({ parentElement, data, setTriggerValue }) {
   const previa = parentElement.querySelector(".mapa-previa");
   const voltar = parentElement.querySelector("[data-mapa-voltar]");
   const contexto = parentElement.querySelector("[data-mapa-legenda-contexto]");
+  const brasao = parentElement.querySelector("[data-mapa-brasao]");
+  const imagem = brasao.querySelector("img");
+  const brasaoPendente = parentElement.querySelector("[data-mapa-brasao-pendente]");
   const acionar = (tipo, valor = null) => setTriggerValue("acao", { tipo, valor });
   const formaAtual = data.formas.find(forma => forma.codigo === data.codigo);
   const foco = data.foco && Boolean(formaAtual);
@@ -208,7 +211,24 @@ export default function ({ parentElement, data, setTriggerValue }) {
   }
   contexto.dataset.cena = cena;
   parentElement.querySelector("[data-mapa-titulo]").textContent = foco ? atual.nome : "Goiás inteiro";
-  contexto.textContent = foco ? rotuloContagem(atual.total) : "";
+  contexto.textContent = rotuloContagem(foco ? atual.total : data.total_estado);
+  brasaoPendente.hidden = !foco || Boolean(data.brasao);
+  if (foco && data.brasao) {
+    imagem.alt = "Brasão de " + atual.nome;
+    imagem.onerror = () => {
+      brasao.hidden = true;
+      brasaoPendente.hidden = false;
+    };
+    brasao.href = data.brasao.fonte;
+    brasao.title = "Fonte do brasão de " + atual.nome;
+    if (imagem.getAttribute("src") !== data.brasao.arquivo) {
+      imagem.src = data.brasao.arquivo;
+      brasao.hidden = false;
+    }
+  } else {
+    brasao.hidden = true;
+    imagem.removeAttribute("src");
+  }
   parentElement.querySelector(".mapa-instrucao").textContent = foco
     ? "As informações do município aparecem ao lado ou abaixo do mapa."
     : "Clique em um município para aproximar e abrir seus dados.";
@@ -224,6 +244,9 @@ export default function ({ parentElement, data, setTriggerValue }) {
   moverCamera(svg, foco ? quadro(formaAtual.limites, .19) : quadro(data.limites, .035));
 
   const formas = [...svg.querySelectorAll("path[data-codigo]")];
+  if (foco) svg.dataset.ultimoMunicipio = data.codigo;
+  const codigoTeclado = svg.dataset.ultimoMunicipio
+    ?? formas.find(forma => data.municipios[forma.dataset.codigo])?.dataset.codigo;
   for (const forma of formas) {
     const codigo = forma.dataset.codigo;
     const municipio = data.municipios[codigo];
@@ -236,9 +259,9 @@ export default function ({ parentElement, data, setTriggerValue }) {
     forma.setAttribute("aria-hidden", String(!visivel));
     forma.setAttribute("aria-disabled", String(foco || !municipio));
     if (foco) forma.removeAttribute("tabindex");
-    else forma.setAttribute("tabindex", selecionado ? "0" : "-1");
+    else forma.setAttribute("tabindex", codigo === codigoTeclado ? "0" : "-1");
   }
-  if (restaurarFoco) formas.find(forma => forma.dataset.codigo === data.codigo)?.focus({ preventScroll: true });
+  if (restaurarFoco) formas.find(forma => forma.dataset.codigo === codigoTeclado)?.focus({ preventScroll: true });
 
   svg.onmousedown = event => {
     if (event.button === 0 && event.target.matches("path[data-codigo]")) event.preventDefault();

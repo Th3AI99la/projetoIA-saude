@@ -53,5 +53,15 @@ def geografia():
     return formas, limites(todos_os_pontos)
 
 
+@st.cache_data(show_spinner=False)
+def catalogo_brasoes():
+    caminho = RAIZ / "static" / "brasoes" / "fontes.json"
+    if not caminho.is_file():
+        return {}
+    with caminho.open(encoding="utf-8") as arquivo:
+        return json.load(arquivo)
+
+
 busca_municipal = componente("busca")
 mapa_goias = componente("mapa")
+indicadores = componente("indicadores")

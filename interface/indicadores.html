@@ -1,0 +1,32 @@
+<header class="dengue-header">
+  <div class="dengue-brand">
+    <h1>Dengue em Goiás</h1>
+    <p>Monitoramento de notificações</p>
+    <small>Projeto Integrador · UEG · Teste de 2025</small>
+  </div>
+  <section class="dengue-metrics" aria-label="Indicadores da árvore no teste de 2025" hidden></section>
+</header>
+<dialog class="dengue-modal" aria-labelledby="dengue-indicador-titulo" aria-describedby="dengue-indicador-explicacao">
+  <div class="dengue-modal-conteudo">
+    <div class="dengue-modal-topo">
+      <h2 id="dengue-indicador-titulo"></h2>
+      <form method="dialog">
+        <button class="dengue-modal-fechar" type="submit" aria-label="Fechar explicação" autofocus>×</button>
+      </form>
+    </div>
+    <p id="dengue-indicador-explicacao"></p>
+    <div class="dengue-modal-calculo">
+      <span>Cálculo no teste de 2025</span>
+      <strong data-calculo></strong>
+    </div>
+    <p class="dengue-modal-nota" data-nota></p>
+  </div>
+</dialog>
+<template data-template-indicador>
+  <button type="button" class="dengue-metric-botao" aria-haspopup="dialog" title="Ver explicação">
+    <span class="dengue-metric-label"></span>
+    <strong></strong>
+    <small></small>
+    <span class="dengue-metric-info" aria-hidden="true">i</span>
+  </button>
+</template>

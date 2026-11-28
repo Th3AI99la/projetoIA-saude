@@ -51,6 +51,7 @@ dados/
 *.jpg
 *.jpeg
 *.webp
+!/static/brasoes/*.webp
 *.svg
 *.bmp
 *.gif

@@ -6,11 +6,13 @@ O protótipo de terminal reproduz o experimento do relatório entregue na discip
 
 ## Painel interativo local
 
-Escolha o intervalo de segunda a domingo em **Semana analisada**. As setas percorrem as semanas do teste. Clique em um município no mapa ou digite seu nome em **Buscar município** para aproximar o mapa e atualizar a previsão, o resultado observado e o histórico. **Voltar para Goiás** restaura a vista estadual.
+Escolha o intervalo de segunda a domingo em **Semana analisada**. As setas percorrem as semanas do teste. **Goiás inteiro** mostra a soma das notificações no estado e quantos municípios tiveram sinal de aumento ou aumento observado. Clique em um município no mapa ou digite seu nome em **Buscar município** para ver a previsão, o resultado observado e o histórico local. **Voltar para Goiás** restaura o resumo estadual na mesma semana.
 
 Em **Casos e curiosidades**, os dois exemplos do relatório abrem o acerto em Abadia de Goiás e o falso negativo em Aparecida do Rio Doce. Os demais destaques são calculados no teste entre semanas com contagens comparáveis. Cada botão abre o município e a semana do caso. A tela também apresenta as regras percorridas e a matriz de confusão.
 
 O painel abre em tema escuro e usa a fonte Poppins, servida localmente com a licença em `static/fonts/poppins-OFL.txt`. O mapa mostra as contagens de notificações da semana de referência por faixas fixas e destaca o município selecionado. Os limites municipais vêm de uma malha simplificada do IBGE, incluída em `mapas/goias_municipios.geojson`. A junção usa os seis primeiros dígitos do código municipal do IBGE. [Malha usada no mapa](https://servicodados.ibge.gov.br/api/v3/malhas/estados/52?formato=application%2Fvnd.geo%2Bjson&qualidade=minima&intrarregiao=municipio)
+
+Os brasões municipais aparecem ao lado do nome da cidade quando há um arquivo identificado no catálogo. As imagens locais foram redimensionadas para WebP e vinculadas pelo código do IBGE. O arquivo `static/brasoes/fontes.json` registra a origem, os créditos e as licenças declaradas. O diretório estadual é indicado nos recortes cuja licença individual precisa de conferência antes da redistribuição. Clicar no brasão abre a fonte. [Wikimedia Commons](https://commons.wikimedia.org/wiki/Category:Coats_of_arms_of_municipalities_of_Goi%C3%A1s) · [Diretório oficial de Goiás](https://goias.gov.br/governo/wp-content/uploads/sites/11/2021/01/CADASTRO-DE-AUTORIDADES-26-190.pdf)
 
 A interação de selecionar o município diretamente no mapa segue a referência do painel [Clima em Goiás, do PET-Saúde](https://th3ai99la.github.io/dev_pet_gat1_saude/).
 

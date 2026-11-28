@@ -191,6 +191,31 @@
 
   .mapa-voltar { font-size: .73rem; }
   .mapa-cabecalho { min-height: 2.7rem; }
+  .mapa-identidade { display: flex; align-items: center; gap: .65rem; min-width: 0; }
+  .mapa-brasao {
+    flex: none;
+    display: inline-grid;
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: minmax(0, 1fr);
+    place-items: center;
+    width: 3.45rem;
+    height: 3.45rem;
+    padding: .29rem;
+    overflow: hidden;
+    border: 1px solid #4a637f;
+    border-radius: .5rem;
+    background: #edf3fa;
+  }
+  .mapa-brasao[hidden] { display: none; }
+  .mapa-brasao img {
+    display: block;
+    width: 100%;
+    height: 100%;
+    min-width: 0;
+    min-height: 0;
+    object-fit: contain;
+  }
+  .mapa-brasao:focus-visible { outline: 2px solid var(--controles-ativo); outline-offset: 2px; }
   .mapa-contexto { display: grid; gap: .12rem; min-width: 0; }
   .mapa-contexto strong { font-size: .9rem; font-weight: 600; }
   .mapa-contexto span { color: var(--controles-suave); font-size: .73rem; }
