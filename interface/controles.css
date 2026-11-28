@@ -1,0 +1,263 @@
+@layer theme, base, components, utilities;
+@import "tailwindcss/theme.css" layer(theme) prefix(tw);
+@import "tailwindcss/utilities.css" layer(utilities) prefix(tw) source(none);
+@source ".";
+
+@layer base {
+  .busca-municipal, .explorador-mapa {
+    --controles-texto: #edf4ff;
+    --controles-suave: #b7c8dd;
+    --controles-borda: #36516d;
+    --controles-fundo: #111f31;
+    --controles-lista: #12243a;
+    --controles-ativo: #f1cd58;
+    color: var(--controles-texto);
+    font: inherit;
+  }
+
+  .busca-municipal input,
+  .explorador-mapa button {
+    font: inherit;
+    color: inherit;
+  }
+
+  .busca-municipal :is(ul, p),
+  .explorador-mapa :is(ul, p) {
+    margin: 0;
+    padding: 0;
+  }
+
+  .busca-municipal [hidden], .explorador-mapa [hidden] {
+    display: none;
+  }
+
+  .explorador-mapa button:focus-visible {
+    outline: 2px solid var(--controles-ativo);
+    outline-offset: 2px;
+  }
+}
+
+@layer components {
+  .busca-municipal label, .controle-semana label {
+    font-size: .79rem;
+    font-weight: 600;
+  }
+
+  .busca-campo, .seletor-semana__campo {
+    border: 1px solid var(--controles-borda);
+    border-radius: .55rem;
+    background: var(--controles-fundo);
+    min-height: 2.65rem;
+  }
+
+  .busca-campo {
+    padding: .15rem .62rem;
+  }
+
+  .busca-campo:focus-within, .seletor-semana__campo[aria-expanded=true] {
+    border-color: var(--controles-ativo);
+  }
+
+  .busca-campo svg, .controle-semana svg, .mapa-voltar svg {
+    stroke: currentColor;
+    stroke-width: 1.8;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+
+  .busca-campo svg { color: #8bb8e9; }
+
+  .busca-campo input[type=search] {
+    width: 100%;
+    min-width: 0;
+    border: 0;
+    outline: none;
+    background: transparent;
+    padding: .44rem 0;
+    font-size: .79rem;
+  }
+
+  .busca-campo input::placeholder { color: var(--controles-suave); }
+
+  .lista-selecao {
+    margin: 0;
+    padding: .27rem;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    list-style: none;
+    border: 1px solid var(--controles-borda);
+    border-radius: .62rem;
+    background: var(--controles-lista);
+    box-shadow: 0 10px 26px #030b17ad;
+    scrollbar-color: #577593 var(--controles-lista);
+    scrollbar-width: thin;
+  }
+
+  .busca-resultados { max-height: 13rem; }
+
+  .opcao-selecao {
+    display: flex;
+    align-items: center;
+    gap: .55rem;
+    min-height: 2.35rem;
+    border-radius: .35rem;
+    cursor: pointer;
+    padding: .38rem .65rem;
+    font-size: .78rem;
+    line-height: 1.4;
+  }
+
+  .opcao-selecao:is(:hover, [data-ativa=true]) { background: #284767; }
+  .opcao-selecao[aria-selected=true] {
+    background: #203952;
+    color: #ffe59a;
+  }
+  .opcao-selecao[aria-selected=true]:is(:hover, [data-ativa=true]) { background: #2c4a65; }
+  .busca-vazia { color: var(--controles-suave); font-size: .76rem; }
+
+  .controle-semana {
+    display: grid;
+    gap: .4rem;
+    margin-top: .15rem;
+  }
+
+  .seletor-semana {
+    position: relative;
+    flex: 1;
+    min-width: 0;
+  }
+
+  .seletor-semana__campo {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: .5rem;
+    width: 100%;
+    padding: .45rem .72rem;
+    cursor: pointer;
+    font-size: .88rem;
+    font-weight: 600;
+    text-align: left;
+  }
+
+  .seletor-semana__campo:hover { background: #192f46; }
+  .seletor-semana__campo[aria-expanded=true]:focus-visible { outline-offset: 0; }
+  .seletor-semana__campo svg { color: #9cbcdf; transition: transform 150ms; }
+  .seletor-semana__campo[aria-expanded=true] svg { transform: rotate(180deg); }
+
+  .seletor-semana__opcoes {
+    position: absolute;
+    inset: calc(100% + .35rem) 0 auto;
+    z-index: 5;
+    max-height: min(17rem, var(--altura-lista, 17rem));
+  }
+
+  .seletor-semana__opcoes[data-acima=true] { inset: auto 0 calc(100% + .35rem); }
+
+  .seletor-semana__opcoes .opcao-selecao[aria-selected=true]::after {
+    content: "";
+    width: .37rem;
+    height: .65rem;
+    margin: 0 .15rem .15rem auto;
+    border: solid currentColor;
+    border-width: 0 2px 2px 0;
+    transform: rotate(45deg);
+  }
+
+  .controle-semana__navegacao > button, .mapa-voltar:not([hidden]) {
+    display: inline-flex;
+    justify-content: center;
+    align-items: center;
+    min-width: 2.6rem;
+    min-height: 2.65rem;
+    border: 1px solid var(--controles-borda);
+    border-radius: .42rem;
+    background: var(--controles-fundo);
+    padding: .38rem .55rem;
+    cursor: pointer;
+    transition: background-color 150ms, border-color 150ms;
+  }
+
+  .controle-semana__navegacao > button:not(:disabled):hover,
+  .mapa-voltar:hover {
+    background: #254565;
+    border-color: #7294ba;
+  }
+
+  .controle-semana__navegacao > button:disabled {
+    opacity: .38;
+    cursor: default;
+  }
+
+  .mapa-voltar { font-size: .73rem; }
+  .mapa-cabecalho { min-height: 2.7rem; }
+  .mapa-contexto { display: grid; gap: .12rem; min-width: 0; }
+  .mapa-contexto strong { font-size: .9rem; font-weight: 600; }
+  .mapa-contexto span { color: var(--controles-suave); font-size: .73rem; }
+  .mapa-contexto span:empty { display: none; }
+
+  .mapa-palco {
+    overflow: hidden;
+    border: 1px solid #294663;
+    border-radius: .55rem;
+    background-color: #0e1d2f;
+    background-image: radial-gradient(ellipse at center, #152d47 0%, #0e1d2f 76%);
+  }
+
+  .mapa-svg { height: clamp(21rem, 42vw, 33rem); }
+
+  .mapa-municipio {
+    fill: var(--dengue-faixa);
+    fill-rule: evenodd;
+    stroke: #17293d;
+    stroke-width: .95;
+    stroke-linejoin: round;
+    vector-effect: non-scaling-stroke;
+    cursor: pointer;
+    transition: fill 180ms, opacity 250ms, stroke 120ms;
+  }
+
+  .mapa-municipio:is(:hover, :focus-visible) { stroke: #d6e8ff; stroke-width: 2; outline: none; }
+  .mapa-municipio[aria-pressed=true] { stroke: #fff0a3; stroke-width: 2.2; }
+  .mapa-municipio[data-visivel=false] { opacity: 0; pointer-events: none; }
+  .mapa-municipio[aria-disabled=true] { cursor: default; }
+  .mapa-svg[data-foco=true] .mapa-municipio { cursor: default; }
+
+  .explorador-mapa [data-faixa=zero] { --dengue-faixa: #4a637b; }
+  .explorador-mapa [data-faixa=baixa] { --dengue-faixa: #477caf; }
+  .explorador-mapa [data-faixa=media] { --dengue-faixa: #817eb6; }
+  .explorador-mapa [data-faixa=alta] { --dengue-faixa: #bd789c; }
+  .explorador-mapa [data-faixa=maxima] { --dengue-faixa: #f0838a; }
+  .explorador-mapa [data-faixa=ausente] { --dengue-faixa: #2e4158; }
+
+  .mapa-previa {
+    position: absolute;
+    inset: auto .65rem .65rem .65rem;
+    width: fit-content;
+    max-width: calc(100% - 1.3rem);
+    border: 1px solid #466381;
+    border-radius: .35rem;
+    background: #0d1b2af2;
+    padding: .38rem .58rem;
+    font-size: .74rem;
+    pointer-events: none;
+  }
+
+  .mapa-instrucao { color: var(--controles-suave); font-size: .74rem; }
+  .mapa-legenda { display: grid; gap: .34rem; }
+  .mapa-legenda span { color: var(--controles-suave); font-size: .7rem; font-weight: 600; }
+  .mapa-legenda ul { list-style: none; }
+  .mapa-legenda li { display: inline-flex; align-items: center; gap: .3rem; font-size: .7rem; }
+  .mapa-legenda i { width: .59rem; height: .59rem; border-radius: .1rem; background: var(--dengue-faixa); }
+}
+
+@layer utilities {
+  @media (max-width: 520px) {
+    .mapa-svg { height: 19.5rem; }
+    .mapa-cabecalho { align-items: flex-start; }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .explorador-mapa *, .busca-municipal * { transition: none; }
+  }
+}

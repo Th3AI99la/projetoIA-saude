@@ -8,6 +8,7 @@ __pycache__/
 .pytest_cache/
 .mypy_cache/
 .ruff_cache/
+node_modules/
 .vscode/
 .vs/
 *.suo
@@ -33,7 +34,6 @@ notebooks/
 /rafa/
 /src/
 /tools/
-/app.py
 /requirements.txt
 /COMO_RODAR.md
 /PLANO_TECNICO.md

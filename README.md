@@ -4,6 +4,44 @@ Projeto 1 do Projeto Integrador de Inteligência Artificial do curso de Sistemas
 
 O protótipo de terminal reproduz o experimento do relatório entregue na disciplina. Ele testa se uma **árvore de decisão** consegue sinalizar aumentos relevantes de notificações na semana seguinte, usando as contagens conhecidas até o fechamento da semana de referência. Cada observação representa um município e uma semana civil.
 
+## Painel interativo local
+
+Escolha o intervalo de segunda a domingo em **Semana analisada**. As setas percorrem as semanas do teste. Clique em um município no mapa ou digite seu nome em **Buscar município** para aproximar o mapa e atualizar a previsão, o resultado observado e o histórico. **Voltar para Goiás** restaura a vista estadual.
+
+Em **Casos e curiosidades**, os dois exemplos do relatório abrem o acerto em Abadia de Goiás e o falso negativo em Aparecida do Rio Doce. Os demais destaques são calculados no teste entre semanas com contagens comparáveis. Cada botão abre o município e a semana do caso. A tela também apresenta as regras percorridas e a matriz de confusão.
+
+O painel abre em tema escuro e usa a fonte Poppins, servida localmente com a licença em `static/fonts/poppins-OFL.txt`. O mapa mostra as contagens de notificações da semana de referência por faixas fixas e destaca o município selecionado. Os limites municipais vêm de uma malha simplificada do IBGE, incluída em `mapas/goias_municipios.geojson`. A junção usa os seis primeiros dígitos do código municipal do IBGE. [Malha usada no mapa](https://servicodados.ibge.gov.br/api/v3/malhas/estados/52?formato=application%2Fvnd.geo%2Bjson&qualidade=minima&intrarregiao=municipio)
+
+A interação de selecionar o município diretamente no mapa segue a referência do painel [Clima em Goiás, do PET-Saúde](https://th3ai99la.github.io/dev_pet_gat1_saude/).
+
+Na raiz da cópia local, coloque o CSV da disciplina em `rafa/01_saude_dengue.csv` ou `dados/01_saude_dengue.csv`. Para outro local, defina a variável `DENGUE_CSV` com o caminho do arquivo. Na primeira instalação, prepare o ambiente em PowerShell com Python 3.13.
+
+```powershell
+python -m venv .venv
+.\.venv\Scripts\python.exe -m pip install -r .\requirements-painel.txt
+```
+
+Para iniciar o painel, execute da mesma pasta.
+
+```powershell
+.\.venv\Scripts\python.exe -m streamlit run app.py --server.address 127.0.0.1 --server.port 8501
+```
+
+Acesse o [painel local](http://127.0.0.1:8501). A primeira abertura treina a árvore e guarda o resultado em memória. Os filtros usam esse resultado para explorar a avaliação.
+
+### Estilos da interface
+
+O painel usa os estilos compilados em `interface/tailwind.css`. Para recompilar após editar os componentes ou `interface/controles.css`, execute na raiz do repositório.
+
+```powershell
+npm ci
+npm run build:css
+```
+
+O Tailwind CSS 4.3.5 está fixado no `package-lock.json`. O Streamlit lê o CSS compilado ao iniciar o painel.
+
+O painel usa a organização de indicadores e gráficos do painel de Valdivino Aquino como referência visual. A implementação consulta os exemplos de gráficos e cache do Streamlit e de caminhos de decisão do scikit-learn. [Dengue em Goiás](https://github.com/valdivinoaquino/dengue_em_goias) · [Exemplo do Streamlit](https://github.com/streamlit/demo-uber-nyc-pickups/blob/main/streamlit_app.py) · [Caminho de decisão](https://scikit-learn.org/stable/auto_examples/tree/plot_unveil_tree_structure.html#decision-path)
+
 ## O que está no repositório
 
 | Arquivo | Uso |

@@ -1,0 +1,29 @@
+[theme]
+base = "dark"
+primaryColor = "#f1cd58"
+backgroundColor = "#101a28"
+secondaryBackgroundColor = "#1b2b3e"
+textColor = "#eef4fb"
+borderColor = "#33475e"
+showWidgetBorder = true
+font = "Poppins, sans-serif"
+
+[[theme.fontFaces]]
+family = "Poppins"
+url = "app/static/fonts/poppins-regular.woff2"
+weight = 400
+
+[[theme.fontFaces]]
+family = "Poppins"
+url = "app/static/fonts/poppins-semibold.woff2"
+weight = 600
+
+[theme.sidebar]
+backgroundColor = "#0c1726"
+secondaryBackgroundColor = "#17283c"
+
+[browser]
+gatherUsageStats = false
+
+[server]
+enableStaticServing = true

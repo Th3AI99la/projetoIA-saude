@@ -1,0 +1,11 @@
+{
+  "name": "projetoia-saude",
+  "private": true,
+  "scripts": {
+    "build:css": "tailwindcss -i ./interface/controles.css -o ./interface/tailwind.css --minify"
+  },
+  "devDependencies": {
+    "@tailwindcss/cli": "4.3.5",
+    "tailwindcss": "4.3.5"
+  }
+}

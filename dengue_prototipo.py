@@ -129,7 +129,7 @@ def _periodo(ano: pd.Series) -> pd.Series:
     return ano.clip(lower=2023)
 
 
-def separar_periodos(d: pd.DataFrame) -> dict[str, pd.DataFrame]:
+def separar_periodos(d: pd.DataFrame, *, verbose: bool = True) -> dict[str, pd.DataFrame]:
     """Divisão por ano civil de semana_inicio, sem linhas que cruzam entre períodos.
 
     A semana-alvo (t + 1) termina 13 dias depois de semana_inicio. Linhas em que
@@ -140,12 +140,13 @@ def separar_periodos(d: pd.DataFrame) -> dict[str, pd.DataFrame]:
     fim_semana_alvo = d["semana_inicio"] + pd.Timedelta(days=13)
     cruza_periodo = _periodo(fim_semana_alvo.dt.year) != _periodo(ano_civil)
 
-    print("\n== Separação cronológica (seção 7.1) ==")
-    print(f"Linhas com municípios identificados: {len(d):,}".replace(",", "."))
-    removidas = d[cruza_periodo]
-    for data, n in removidas.groupby("semana_inicio").size().items():
-        print(f"  retiradas {n} linhas da semana iniciada em {data:%d/%m/%Y}")
-    print(f"  total retirado: {len(removidas)}")
+    if verbose:
+        print("\n== Separação cronológica (seção 7.1) ==")
+        print(f"Linhas com municípios identificados: {len(d):,}".replace(",", "."))
+        removidas = d[cruza_periodo]
+        for data, n in removidas.groupby("semana_inicio").size().items():
+            print(f"  retiradas {n} linhas da semana iniciada em {data:%d/%m/%Y}")
+        print(f"  total retirado: {len(removidas)}")
 
     d = d[~cruza_periodo]
     ano_civil = ano_civil[~cruza_periodo]
@@ -156,10 +157,11 @@ def separar_periodos(d: pd.DataFrame) -> dict[str, pd.DataFrame]:
     }
     if any(p[ALVO].nunique() < 2 for p in periodos.values()):
         raise ValueError("Treino, validação e teste precisam conter as duas classes. Use a base completa do projeto.")
-    print(f"Linhas restantes: {len(d):,}".replace(",", "."))
-    for nome, p in periodos.items():
-        pos = int(p[ALVO].sum())
-        print(f"  {nome:22s} {len(p):>6} linhas | classe 1: {pos} ({pct(pos / len(p))})")
+    if verbose:
+        print(f"Linhas restantes: {len(d):,}".replace(",", "."))
+        for nome, p in periodos.items():
+            pos = int(p[ALVO].sum())
+            print(f"  {nome:22s} {len(p):>6} linhas | classe 1: {pos} ({pct(pos / len(p))})")
     return periodos
 
 
@@ -182,8 +184,9 @@ def pct(x: float) -> str:
 # ---------------------------------------------------------------------------
 # 3. Árvore de decisão: grade de 48 configurações
 # ---------------------------------------------------------------------------
-def selecionar_arvore(treino, validacao):
-    print("\n== Grade da árvore de decisão na validação (seção 5) ==")
+def selecionar_arvore(treino, validacao, *, verbose: bool = True):
+    if verbose:
+        print("\n== Grade da árvore de decisão na validação (seção 5) ==")
     linhas = []
     for (nome_conj, cols), prof, folha, peso in itertools.product(
         CONJUNTOS.items(), GRADE_PROFUNDIDADE, GRADE_MIN_FOLHA, GRADE_PESOS
@@ -206,16 +209,17 @@ def selecionar_arvore(treino, validacao):
             }
         )
     grade = pd.DataFrame(linhas)
-    print(f"Configurações avaliadas: {len(grade)}")
-    for conj in CONJUNTOS:
-        melhor = grade[grade["conjunto"] == conj]["f1"].max()
-        print(f"  maior F1 com {conj}: {pct(melhor)}")
-    print("Cinco melhores configurações:")
-    top = grade.sort_values("f1", ascending=False).head(5)
-    print(
-        top[["conjunto", "max_depth", "min_samples_leaf", "class_weight", "folhas", "f1"]]
-        .to_string(index=False, formatters={"f1": pct})
-    )
+    if verbose:
+        print(f"Configurações avaliadas: {len(grade)}")
+        for conj in CONJUNTOS:
+            melhor = grade[grade["conjunto"] == conj]["f1"].max()
+            print(f"  maior F1 com {conj}: {pct(melhor)}")
+        print("Cinco melhores configurações:")
+        top = grade.sort_values("f1", ascending=False).head(5)
+        print(
+            top[["conjunto", "max_depth", "min_samples_leaf", "class_weight", "folhas", "f1"]]
+            .to_string(index=False, formatters={"f1": pct})
+        )
 
     escolhida = grade.loc[grade["f1"].idxmax()]
     cols = CONJUNTOS[escolhida["conjunto"]]
@@ -226,11 +230,12 @@ def selecionar_arvore(treino, validacao):
         class_weight=peso,
         random_state=RANDOM_STATE,
     ).fit(treino[cols], treino[ALVO])
-    print(
-        f"Escolhida: {escolhida['conjunto']}, profundidade {arvore.max_depth}, "
-        f"mínimo {arvore.min_samples_leaf} por folha, pesos {escolhida['class_weight']}, "
-        f"{arvore.get_n_leaves()} folhas, F1 de validação {pct(escolhida['f1'])}"
-    )
+    if verbose:
+        print(
+            f"Escolhida: {escolhida['conjunto']}, profundidade {arvore.max_depth}, "
+            f"mínimo {arvore.min_samples_leaf} por folha, pesos {escolhida['class_weight']}, "
+            f"{arvore.get_n_leaves()} folhas, F1 de validação {pct(escolhida['f1'])}"
+        )
     return arvore, cols, grade
 
 

@@ -1,0 +1,12 @@
+<div class="busca-municipal tw:grid tw:gap-2">
+  <label for="busca-cidade">Buscar município</label>
+  <div class="busca-campo tw:flex tw:items-center tw:gap-2">
+    <svg class="tw:size-4 tw:shrink-0" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+      <circle cx="10.5" cy="10.5" r="6.5"/><path d="m15 15 5 5"/>
+    </svg>
+    <input id="busca-cidade" type="search" placeholder="Digite o nome" autocomplete="off" spellcheck="false"
+      role="combobox" aria-autocomplete="list" aria-expanded="false" aria-controls="busca-resultados">
+  </div>
+  <ul id="busca-resultados" class="lista-selecao busca-resultados" role="listbox" aria-label="Municípios encontrados" hidden></ul>
+  <p class="busca-vazia" role="status" hidden>Nenhum município encontrado.</p>
+</div>

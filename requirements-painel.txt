@@ -1,0 +1,3 @@
+-r requirements-prototipo.txt
+altair==6.3.0
+streamlit==1.66.0

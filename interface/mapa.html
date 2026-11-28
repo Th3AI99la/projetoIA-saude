@@ -1,0 +1,45 @@
+<section class="explorador-mapa tw:grid tw:gap-3" aria-label="Mapa e período de análise">
+  <div class="controle-semana">
+    <label id="periodo-rotulo" for="periodo-mapa">Semana analisada</label>
+    <div class="controle-semana__navegacao tw:flex tw:items-center tw:gap-2">
+      <button type="button" data-periodo-anterior aria-label="Semana anterior" title="Semana anterior">
+        <svg class="tw:size-4" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="m15 18-6-6 6-6"/></svg>
+      </button>
+      <div class="seletor-semana">
+        <button type="button" id="periodo-mapa" class="seletor-semana__campo" role="combobox"
+          aria-labelledby="periodo-rotulo periodo-valor" aria-controls="periodo-opcoes" aria-expanded="false">
+          <span id="periodo-valor"></span>
+          <svg class="tw:size-4 tw:shrink-0" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+            <path d="m6 9 6 6 6-6"/>
+          </svg>
+        </button>
+        <ul id="periodo-opcoes" class="lista-selecao seletor-semana__opcoes"
+          role="listbox" aria-labelledby="periodo-rotulo" hidden></ul>
+      </div>
+      <button type="button" data-periodo-proximo aria-label="Próxima semana" title="Próxima semana">
+        <svg class="tw:size-4" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg>
+      </button>
+    </div>
+  </div>
+  <div class="mapa-cabecalho tw:flex tw:flex-wrap tw:items-center tw:justify-between tw:gap-2">
+    <div class="mapa-contexto" aria-live="polite">
+      <strong data-mapa-titulo></strong>
+      <span data-mapa-legenda-contexto></span>
+    </div>
+    <button type="button" class="mapa-voltar tw:items-center tw:gap-2" data-mapa-voltar hidden>
+      <svg class="tw:size-4" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M19 12H5m6-6-6 6 6 6"/></svg>
+      Voltar para Goiás
+    </button>
+  </div>
+  <div class="mapa-palco tw:relative">
+    <svg class="mapa-svg tw:block tw:w-full" role="group" aria-label="Municípios de Goiás" aria-describedby="mapa-instrucao">
+      <g data-mapa-formas></g>
+    </svg>
+    <div class="mapa-previa" aria-hidden="true" hidden></div>
+  </div>
+  <p id="mapa-instrucao" class="mapa-instrucao"></p>
+  <div class="mapa-legenda">
+    <span>Notificações na semana</span>
+    <ul class="tw:flex tw:flex-wrap tw:gap-x-3 tw:gap-y-1" data-mapa-faixas></ul>
+  </div>
+</section>
